@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un bot Telegram avec Python</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav class="menu-tutorial">
+            <a href="../index.html">Accueil</a> | <a href="#bot-telegram">Bot Telegram</a> | <a href="#about">À propos</a>
+        </nav>
+    </header>
+
+    <main>
+        <article>
+            <h1>Créer un bot Telegram avec Python</h1>
+            <p>Ce tutoriel explique étape par étape comment créer un bot Telegram fonctionnel à l'aide de Python. À travers ce guide, vous apprendrez à configurer un bot, écrire son code, et interagir avec Telegram via des commandes simples et des boutons.</p>
+            
+            <section>
+                <h2>1. Configurer le bot avec BotFather</h2>
+                <p><strong>BotFather</strong> est un bot officiel de Telegram qui vous permet de créer et configurer d’autres bots.</p>
+                <ol>
+                    <li>
+                        <strong>Rechercher BotFather :</strong> Ouvrez l’application Telegram et recherchez <strong>BotFather</strong> dans la barre de recherche. Vous le reconnaîtrez grâce à son badge officiel bleu.
+                    </li>
+                    <li>
+                        <strong>Créer un nouveau bot :</strong> Envoyez la commande <code>/newbot</code>. BotFather vous demandera :
+                        <ul>
+                            <li>Un nom pour votre bot (par exemple : <em>MonSuperBot</em>).</li>
+                            <li>Un identifiant unique, qui doit se terminer par <code>bot</code> (par exemple : <em>monsuperbot</em>).</li>
+                        </ul>
+                        <img src="../assets/images/botfather-creation.png" alt="Capture d'écran de la création d'un bot avec BotFather" class="screenshot">
+                        <p><em>Capture d’écran :</em> Exemple de configuration d’un bot avec BotFather.</p>
+                    </li>
+                    <li>
+                        <strong>Obtenir le token :</strong> Une fois le bot créé, BotFather vous fournira un <strong>token d’authentification</strong>. Ce token ressemble à ceci :
+                        <div class="code-block">
+                            <button class="copy-btn">Copier</button>
+                            <pre><code class="language-bash">
+123456789:ABCDefGhijklMnopQRstuVwXyZ
+                            </code></pre>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section>
+                <h2>2. Préparer l’environnement</h2>
+                <p>Assurez-vous que Python est installé sur votre machine, et installez la bibliothèque <code>python-telegram-bot</code>.</p>
+                <div class="code-block">
+                    <button class="copy-btn">Copier</button>
+                    <pre><code class="language-bash">
+# Vérifier l'installation de Python
+python --version
+
+# Installer python-telegram-bot
+pip install python-telegram-bot
+                    </code></pre>
+                </div>
+            </section>
+
+            <section>
+                <h2>3. Écrire le code du bot</h2>
+                <p>Nous allons écrire le code du bot étape par étape. Chaque partie sera expliquée en détail avant d’être intégrée au script final.</p>
+            
+                <h3>Étape 1 : Importer les bibliothèques nécessaires</h3>
+                <p>Nous commençons par importer les modules indispensables pour créer notre bot :</p>
+                <div class="code-block">
+                    <button class="copy-btn">Copier</button>
+                    <pre><code class="language-python">
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+                    </code></pre>
+                </div>
+                <p><strong>Explications :</strong></p>
+                <ul>
+                    <li><code>Update</code> : Contient les informations sur le message envoyé par l'utilisateur, comme le texte et l'identifiant.</li>
+                    <li><code>Application</code> : Permet de configurer et de gérer les interactions du bot avec Telegram.</li>
+                    <li><code>CommandHandler</code> : Permet de définir les commandes (comme <code>/start</code>).</li>
+                    <li><code>ContextTypes</code> : Fournit des informations supplémentaires pour les interactions.</li>
+                </ul>
+            
+                <h3>Étape 2 : Ajouter une commande /start</h3>
+                <p>La commande <code>/start</code> est utilisée pour accueillir l'utilisateur lorsqu'il interagit pour la première fois avec le bot :</p>
+                <div class="code-block">
+                    <button class="copy-btn">Copier</button>
+                    <pre><code class="language-python">
+# Fonction pour gérer la commande /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Bienvenue sur mon bot Telegram ! Tapez /help pour voir les commandes disponibles.')
+                    </code></pre>
+                </div>
+                <p><strong>Explications :</strong></p>
+                <ul>
+                    <li><code>async def start(...):</code> : Cette fonction est définie comme asynchrone (<code>async</code>) car l'API Telegram utilise des interactions asynchrones pour être plus performante.</li>
+                    <li><code>update.message.reply_text(...)</code> : Envoie un message de bienvenue à l'utilisateur.</li>
+                </ul>
+            
+                <h3>Étape 3 : Ajouter une commande /help</h3>
+                <p>La commande <code>/help</code> affiche la liste des commandes disponibles pour l'utilisateur :</p>
+                <div class="code-block">
+                    <button class="copy-btn">Copier</button>
+                    <pre><code class="language-python">
+# Fonction pour gérer la commande /help
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Voici les commandes disponibles :\\n/start - Démarrer le bot\\n/help - Afficher cette aide')
+                    </code></pre>
+                </div>
+                <p><strong>Explications :</strong></p>
+                <ul>
+                    <li><code>await update.message.reply_text(...)</code> : Envoie une liste des commandes disponibles.</li>
+                </ul>
+
+                <h3>Étape 4 : Configurer et démarrer le bot</h3>
+                <p>Nous configurons le bot avec son token et ajoutons les commandes dans l'application :</p>
+                <div class="code-block">
+                    <button class="copy-btn">Copier</button>
+                    <pre><code class="language-python">
+def main():
+    TOKEN = "VOTRE_TOKEN"  # Remplacez par votre token généré par BotFather
+    application = Application.builder().token(TOKEN).build()
+            
+    # Ajouter les commandes
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+            
+    # Démarrer le bot
+    application.run_polling()
+            
+if __name__ == '__main__':
+    main()
+                    </code></pre>
+                </div>
+                <p><strong>Explications :</strong></p>
+                <ul>
+                    <li><code>Application.builder().token(TOKEN).build()</code> : Initialise l'application avec le token fourni par BotFather.</li>
+                    <li><code>add_handler(...)</code> : Ajoute les gestionnaires de commandes (<code>/start</code> et <code>/help</code>) à l'application.</li>
+                    <li><code>run_polling()</code> : Démarre le bot pour écouter les messages entrants.</li>
+                </ul>
+            
+                <h3>Étape 5 : Code complet</h3>
+                <p>Voici le code complet du bot. Vous pouvez le copier et l'exécuter une fois que toutes les étapes précédentes sont comprises :</p>
+                <div class="code-block">
+                    <button class="copy-btn">Copier</button>
+                    <pre><code class="language-python">
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+            
+# Fonction pour gérer la commande /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Bienvenue sur mon bot Telegram ! Tapez /help pour voir les commandes disponibles.')
+            
+# Fonction pour gérer la commande /help
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Voici les commandes disponibles :\\n/start - Démarrer le bot\\n/help - Afficher cette aide')
+            
+# Fonction principale pour configurer le bot
+def main():
+    TOKEN = "VOTRE_TOKEN"  # Remplacez par votre token généré par BotFather
+    application = Application.builder().token(TOKEN).build()
+            
+    # Ajouter les commandes
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+            
+    # Démarrer le bot
+    application.run_polling()
+            
+if __name__ == '__main__':
+     main()
+                    </code></pre>
+                </div>
+            </section>
+            
+
+            <section>
+                <h2>4. Tester le bot</h2>
+                <p>Exécutez votre bot dans le terminal avec cette commande :</p>
+                <div class="code-block">
+                    <button class="copy-btn">Copier</button>
+                    <pre><code class="language-bash">
+python bot.py
+                    </code></pre>
+                </div>
+                <p>Ouvrez Telegram, recherchez votre bot, et essayez les commandes <code>/start</code> et <code>/help</code>.</p>
+                <img src="../assets/images/bot-telegram-start.png" alt="Exemple de commande /start dans Telegram" class="screenshot">
+                <p><em>Capture d’écran :</em> Exemple de réponse du bot à la commande <code>/start</code>.</p>
+            </section>
+
+
+            <section>
+                <h2>5. Conclusion</h2>
+                <p>Félicitations ! Vous venez de créer un bot Telegram fonctionnel en Python. Voici un récapitulatif de ce que vous avez appris :</p>
+                <ul>
+                    <li>Configurer un bot via BotFather pour obtenir un token d’authentification.</li>
+                    <li>Installer les outils nécessaires comme Python et la bibliothèque <code>python-telegram-bot</code>.</li>
+                    <li>Écrire des commandes simples comme <code>/start</code> et <code>/help</code> pour interagir avec les utilisateurs.</li>
+                    <li>Configurer et lancer un bot avec Telegram pour répondre aux messages.</li>
+                </ul>
+            
+                <h3>Prochaines étapes</h3>
+                <p>Maintenant que vous avez créé un bot basique, voici quelques idées pour aller plus loin :</p>
+                <ul>
+                    <li>Ajouter des fonctionnalités avancées, comme des réponses basées sur des mots-clés ou des boutons interactifs.</li>
+                    <li>Intégrer une API externe (par exemple, pour afficher la météo ou des blagues).</li>
+                    <li>Créer une base de données pour stocker des informations comme les préférences des utilisateurs.</li>
+                </ul>
+            
+                <h3>Merci de suivre ce tutoriel !</h3>
+                <p>Nous espérons que ce guide vous a aidé à mieux comprendre la création d’un bot Telegram. N’hésitez pas à explorer nos autres tutoriels pour continuer à développer vos compétences en programmation et automatisation !</p>
+            </section>
+            
+        </article>
+    </main>
+
+    
+
+    <footer>
+        <p>© 2025 - Mon Projet de Tutoriels</p>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const codeBlock = button.nextElementSibling.querySelector('code');
+                const codeText = codeBlock.textContent;
+
+                navigator.clipboard.writeText(codeText)
+                    .then(() => {
+                        button.textContent = 'Copié !';
+                        setTimeout(() => (button.textContent = 'Copier'), 2000); // Revenir à "Copier" après 2s
+                    })
+                    .catch(err => {
+                        console.error('Erreur lors de la copie : ', err);
+                        button.textContent = 'Erreur';
+                        setTimeout(() => (button.textContent = 'Copier'), 2000);
+                    });
+            });
+        });
+    </script>
+    
+
+
+</body>
+</html>
+

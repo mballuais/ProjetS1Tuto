@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un bot Telegram avec Python</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav class="menu-tutorial">
+            <a href="../index.html">Accueil</a> | <a href="#bot-telegram">Bot Telegram</a> | <a href="#about">À propos</a>
+        </nav>
+    </header>
+
+<main>
+    <article>
+
+<section>
+    <h1>Intégrer une API dans un bot Telegram avec Python</h1>
+    <p>Ce tutoriel explique comment utiliser une API tierce pour enrichir les fonctionnalités d'un bot Telegram. Nous utiliserons l'API <strong>OpenWeather</strong> pour obtenir des informations météo en temps réel.</p>
+</section>
+
+<section>
+    <h2>1. Introduction à l'API OpenWeather</h2>
+    <p>OpenWeather est une API gratuite qui fournit des données météo pour n'importe quelle ville. Nous utiliserons cette API pour répondre à la commande <code>/meteo</code> dans notre bot Telegram.</p>
+    <p><strong>Exemple :</strong> Tapez <code>/meteo Paris</code> dans le bot, et il vous renverra la météo actuelle à Paris.</p>
+    <p>Pour commencer, créez un compte gratuit sur <a href="https://openweathermap.org" target="_blank">openweathermap.org</a> et obtenez une clé API.</p>
+</section>
+
+<section>
+    <h2>2. Configurer l'API</h2>
+    <ol>
+        <li>Connectez-vous à votre compte sur <a href="https://openweathermap.org" target="_blank">OpenWeather</a>.</li>
+        <li>Créez une clé API en allant dans l'onglet "API Keys".</li>
+        <li>Copiez la clé API générée (elle ressemble à <code>abcdef1234567890</code>).</li>
+    </ol>
+    <p><strong>Exemple de requête :</strong> Pour obtenir la météo d'une ville, vous pouvez utiliser cette URL :</p>
+    <div class="code-block">
+        <button class="copy-btn">Copier</button>
+        <pre><code class="language-bash">
+https://api.openweathermap.org/data/2.5/weather?q=Paris&appid=VOTRE_CLE_API&units=metric&lang=fr
+        </code></pre>
+    </div>
+    <p>Dans cet exemple :</p>
+    <ul>
+        <li><code>q=Paris</code> : Définit la ville pour laquelle vous souhaitez obtenir la météo.</li>
+        <li><code>appid=VOTRE_CLE_API</code> : Remplacez par votre clé API personnelle.</li>
+        <li><code>units=metric</code> : Définit les unités de mesure (Celsius).</li>
+        <li><code>lang=fr</code> : Définit la langue des résultats (français).</li>
+    </ul>
+</section>
+
+<section>
+    <h2>3. Écrire le code du bot</h2>
+    <p>Nous allons écrire le code étape par étape pour intégrer une commande <code>/meteo</code> qui utilise l'API OpenWeather. Chaque section inclut une explication claire.</p>
+
+    <h3>Étape 1 : Importer les bibliothèques nécessaires</h3>
+    <p>Tout d'abord, nous devons importer les modules nécessaires pour créer le bot et effectuer des requêtes HTTP.</p>
+    <div class="code-block">
+        <button class="copy-btn">Copier</button>
+        <pre><code class="language-python">
+import requests
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+        </code></pre>
+    </div>
+    <p><strong>Explications :</strong></p>
+    <ul>
+        <li><code>requests</code> : Permet d'envoyer des requêtes HTTP pour interagir avec l'API OpenWeather.</li>
+        <li><code>Update</code> : Représente le message envoyé par l'utilisateur (comme le texte ou l'identifiant).</li>
+        <li><code>Application</code> : Gère les interactions du bot avec Telegram (initialisation, configuration des commandes).</li>
+        <li><code>CommandHandler</code> : Permet de définir des commandes spécifiques, comme <code>/meteo</code>.</li>
+        <li><code>ContextTypes</code> : Fournit des informations supplémentaires pour les commandes.</li>
+    </ul>
+
+    <h3>Étape 2 : Ajouter la fonction <code>/meteo</code></h3>
+    <p>Ensuite, nous définissons une fonction <code>meteo</code> qui sera appelée lorsque l'utilisateur tape <code>/meteo</code>.</p>
+    <div class="code-block">
+        <button class="copy-btn">Copier</button>
+        <pre><code class="language-python">
+# Fonction pour gérer la commande /meteo
+async def meteo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # Vérifier si l'utilisateur a fourni une ville
+    if len(context.args) == 0:
+        await update.message.reply_text("Veuillez entrer une ville. Exemple : /meteo Paris")
+        return
+
+    # Récupérer le nom de la ville
+    ville = " ".join(context.args)
+
+    # Construire l'URL de l'API avec la ville
+    api_key = "VOTRE_CLE_API"  # Remplacez par votre clé OpenWeather
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={api_key}&units=metric&lang=fr"
+
+    try:
+        # Envoyer une requête à l'API
+        response = requests.get(url)
+        data = response.json()
+
+        # Vérifier si la ville existe
+        if data["cod"] != 200:
+            await update.message.reply_text(f"Ville introuvable : {ville}")
+            return
+
+        # Extraire les informations météo
+        description = data["weather"][0]["description"]
+        temperature = data["main"]["temp"]
+
+        # Construire la réponse
+        message = f"🌤️ Météo à {ville} :\n- {description.capitalize()}\n- Température : {temperature}°C"
+        await update.message.reply_text(message)
+
+    except Exception as e:
+        # Gestion des erreurs
+        await update.message.reply_text("Une erreur est survenue lors de la récupération des données météo.")
+        print(e)
+        return
+        </code></pre>
+    </div>
+    <p><strong>Explications détaillées :</strong></p>
+    <ul>
+        <li><code>if len(context.args) == 0</code> : Vérifie si l'utilisateur a fourni une ville après <code>/meteo</code>.</li>
+        <li><code>ville = " ".join(context.args)</code> : Combine les mots pour former un nom de ville (par exemple, "New York").</li>
+        <li><code>url = ...</code> : Crée l'URL de l'API en remplaçant les paramètres par le nom de la ville, la clé API et les unités.</li>
+        <li><code>requests.get(url)</code> : Envoie une requête HTTP pour récupérer les données météo.</li>
+        <li><code>data["weather"][0]["description"]</code> : Récupère une description de la météo (par exemple, "ciel dégagé").</li>
+        <li><code>data["main"]["temp"]</code> : Récupère la température actuelle.</li>
+    </ul>
+
+    <h3>Étape 3 : Configurer et démarrer le bot</h3>
+    <p>Nous allons maintenant configurer le bot avec Telegram et ajouter la commande <code>/meteo</code> à l'application.</p>
+    <div class="code-block">
+        <button class="copy-btn">Copier</button>
+        <pre><code class="language-python">
+def main():
+    TOKEN = "VOTRE_TOKEN"  # Remplacez par votre token Telegram
+    application = Application.builder().token(TOKEN).build()
+
+    # Ajouter la commande /meteo
+    application.add_handler(CommandHandler("meteo", meteo))
+
+    # Démarrer le bot
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
+        </code></pre>
+    </div>
+    <p><strong>Explications :</strong></p>
+    <ul>
+        <li><code>TOKEN = "VOTRE_TOKEN"</code> : Token généré par BotFather pour authentifier votre bot.</li>
+        <li><code>application.add_handler(...)</code> : Ajoute la commande <code>/meteo</code> à l'application.</li>
+        <li><code>application.run_polling()</code> : Lance le bot pour écouter les messages.</li>
+    </ul>
+
+    <h3>Étape 4 : Code complet</h3>
+    <p>Voici le code final complet que vous pouvez tester :</p>
+    <div class="code-block">
+        <button class="copy-btn">Copier</button>
+        <pre><code class="language-python">
+import requests
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+
+# Fonction pour gérer la commande /meteo
+async def meteo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) == 0:
+        await update.message.reply_text("Veuillez entrer une ville. Exemple : /meteo Paris")
+        return
+
+    ville = " ".join(context.args)
+    api_key = "VOTRE_CLE_API"
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={ville}&appid={api_key}&units=metric&lang=fr"
+
+    try:
+        response = requests.get(url)
+        data = response.json()
+
+        if data["cod"] != 200:
+            await update.message.reply_text(f"Ville introuvable : {ville}")
+            return
+
+        description = data["weather"][0]["description"]
+        temperature = data["main"]["temp"]
+        message = f"🌤️ Météo à {ville} :\n- {description.capitalize()}\n- Température : {temperature}°C"
+        await update.message.reply_text(message)
+
+    except Exception as e:
+        await update.message.reply_text("Une erreur est survenue lors de la récupération des données météo.")
+        print(e)
+
+def main():
+    TOKEN = "VOTRE_TOKEN"
+    application = Application.builder().token(TOKEN).build()
+    application.add_handler(CommandHandler("meteo", meteo))
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
+        </code></pre>
+    </div>
+</section>
+
+
+<section>
+    <h2>4. Tester le bot</h2>
+    <p>Exécutez votre bot avec la commande suivante :</p>
+    <div class="code-block">
+        <button class="copy-btn">Copier</button>
+        <pre><code class="language-bash">
+python bot.py
+        </code></pre>
+    </div>
+    <p>Ouvrez Telegram, recherchez votre bot, et tapez une commande comme <code>/meteo Paris</code>. Vous devriez voir la météo actuelle à Paris.</p>
+</section>
+
+<section>
+    <h2>5. Conclusion</h2>
+    <p>Félicitations ! Vous avez appris à intégrer une API dans un bot Telegram. Grâce à cela, votre bot peut offrir des fonctionnalités enrichies comme afficher des données météo.</p>
+    <p>Pour aller plus loin, vous pouvez :</p>
+    <ul>
+        <li>Essayer d'autres API publiques (comme des API de blagues, de citations, ou de recettes).</li>
+        <li>Ajouter des boutons interactifs pour demander des données dynamiques.</li>
+        <li>Déployer le bot sur un serveur pour qu'il soit disponible 24h/24.</li>
+    </ul>
+</section>
+</article>
+</main>
+
+<footer>
+    <p>© 2025 - Mon Projet de Tutoriels</p>
+</footer>
+
+<script>
+    document.querySelectorAll('.copy-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const codeBlock = button.nextElementSibling.querySelector('code');
+            const codeText = codeBlock.textContent;
+
+            navigator.clipboard.writeText(codeText)
+                .then(() => {
+                    button.textContent = 'Copié !';
+                    setTimeout(() => (button.textContent = 'Copier'), 2000); // Revenir à "Copier" après 2s
+                })
+                .catch(err => {
+                    console.error('Erreur lors de la copie : ', err);
+                    button.textContent = 'Erreur';
+                    setTimeout(() => (button.textContent = 'Copier'), 2000);
+                });
+        });
+    });
+</script>
+
+
