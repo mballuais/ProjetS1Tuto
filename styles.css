@@ -8,7 +8,7 @@ body {
     background-color: #f9f9f9;
 }
 
-h1, h2 {
+h2 {
     color: #0078d7;
 }
 
@@ -16,8 +16,6 @@ h3 {
     color: #444;
 }
 
-/* === HEADER === */
-/* Menu pour la page d'accueil */
 .menu-home {
     text-align: center;
     background: #0078d7;
