@@ -45,25 +45,6 @@ h3 {
     text-decoration: underline;
 }
 
-/* Menu pour les tutoriels */
-.menu-tutorial {
-    background: #005bb5;
-    color: white;
-    padding: 1rem;
-    text-align: center;
-}
-
-.menu-tutorial a {
-    color: white;
-    text-decoration: none;
-    margin: 0 10px;
-    font-weight: bold;
-}
-
-.menu-tutorial a:hover {
-    text-decoration: underline;
-}
-
 /* === MAIN CONTENT === */
 main {
     padding: 2rem;
